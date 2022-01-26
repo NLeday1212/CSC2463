@@ -40,7 +40,10 @@ function draw() {
   rect(5,410,40, 40);
 
   
-  if(mouseIsPressed && mouseX > 50 || (mouseX < 50 && mouseY > 460)){
+  if(mouseIsPressed && mouseX > 50){
+    fill(c);
+    ellipse(mouseX, mouseY, 20,20);
+  }else if(mouseIsPressed && mouseX < 50 && mouseY > 460){
     fill(c);
     ellipse(mouseX, mouseY, 20,20);
   }else if(mouseIsPressed && mouseX > 5 && mouseX < 45 && mouseY > 5 && mouseY <45){
