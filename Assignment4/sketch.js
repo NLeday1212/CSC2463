@@ -1,109 +1,221 @@
-let backgroundImg; //The image for the background
-let character1;    //The character 1 object
-let character2;
+let background;    //background
+let spriteSheet;     //Spritesheet for the bugs
+let bugList = [];  //an array of all the bugs on the screen
+let numBugs;       //Number of bugs on the screen
+let speedMult = 1;//Speed multipler to change speed of bugs
+let startTime;
+let timeRemaining = 30;
+let gameState = "start"; //"Start" game has not started. "playing" game is currently in play. "endL" or "endW" game is over
 
 function preload(){
-backgroundImg = loadImage("https://nleday1212.github.io/CSC2463/Assignment3/background.png");
-goldMan = loadImage("https://nleday1212.github.io/CSC2463/Assignment3/goldMan.png");
-roundBoy = loadImage("https://nleday1212.github.io/CSC2463/Assignment3/roundBoy.png");
-
+  background = loadImage("https://nleday1212.github.io/CSC2463/Assignment4/BugBackground.png");
+  spriteSheet = loadImage("https://nleday1212.github.io/CSC2463/Assignment4/BugSprites.png")
 }
 
 function setup() {
-  createCanvas(900, 500);
-  let randomX = Math.floor(Math.random() * (800 - 100 + 1) + 100);
-  let randomY = Math.floor(Math.random() * (400 - 250 + 1) + 250);
-  character1 = new Character(goldMan, randomX, randomY); //Creates a new character object
-  randomX = Math.floor(Math.random() * (800 - 100 + 1) + 100);
-  randomY = Math.floor(Math.random() * (400 - 250 + 1) + 250);
-  character2 = new Character(roundBoy, randomX, randomY); //Creates a new character object
-
+  createCanvas(800, 800);
+  //Creating the bug objects
+  speedMult = 1;
+  //While loop deletes bug objects from array to account for game restarts. Fixes isse with going down in difficulty
+  while(bugList.length > 0){
+    bugList.pop();
+  }
+  //Creates the bug objects
+  for(let i =0; i <= numBugs -1; i++){
+    let thisBug = new Bug(spriteSheet, random(50, 750), random(50, 750), Math.floor(Math.random() * (3 - 0 + 1)) + 0);
+    bugList[i] = thisBug;
+  }
 }
 
 function draw(){
-  image(backgroundImg, 0, 0, 900, 500);
-  textSize(24);
-  text('Press left and right arrow keys to move golden man.\nPress up and down arrow keys to move round boy.', 200, 50);
-  push();
-  imageMode(CENTER);
-  //This if and else statement is used accurately draw one character over the other based on the randomly
-  //generated x and y location
-  if(character1.yLoc > character2.yLoc){
-    character2.draw();
-    character1.draw();
-  }else{
-    character1.draw();
-    character2.draw();
+  image(background, 0, 0, 800, 800);
+  if(gameState == "start"){//Game has not been started 
+    //Creating the start menu
+    push();
+    fill(204, 198, 198);
+    rect(150, 250, 490, 140, 10);
+    fill(0, 0, 0);
+    textSize(40);
+    text("Select a difficulty to start! ", 175, 300);
+    fill(146,255,112);//easy
+    rect(220, 325, 100, 40, 10);
+    fill(228,255,51);//medium
+    rect(345, 325, 100, 40, 10);
+    fill(255, 31, 31);//hard
+    rect(470, 325, 100, 40, 10);
+    fill(0, 0, 0);
+    textSize(24);
+    text("  Easy        Medium        Hard", 230, 352);
+    pop();
+  }else if(gameState == "playing"){
+    push();
+    checkTime();
+    textSize(24);
+    text("Bugs Remaining: " + getBugsLeft(), 10, 30);
+    timeRemaining = 30 - timer();
+    text("Time Remaining: " + timeRemaining, 10, 60);
+    imageMode(CENTER);
+    for(let i =0; i <= bugList.length -1; i++){
+      bugList[i].draw();
+    }
+    pop();
+  }else{ //GAMESTATE == "endL" (loss) or "endW" (win)
+    push();
+    imageMode(CENTER);
+    for(let i =0; i <= bugList.length -1; i++){
+      bugList[i].draw();
+    }
+    textSize(24);
+    text("Bugs Remaining: " + getBugsLeft(), 10, 30);
+    text("Time Remaining: " + timeRemaining, 10, 60);
+    if(gameState == "endL"){//Game over screen on loss
+      fill(204, 198, 198);
+      rect(150, 250, 490, 140, 10);
+      fill(0, 0, 0);
+      textSize(40);
+      text("Out of time!", 290, 300);
+      textSize(32);
+      text("Press the mouse to reset.", 210, 350);
+    }else{ //Game over screen upon win
+      fill(204, 198, 198);
+      rect(150, 250, 490, 180, 10);
+      fill(0, 0, 0);
+      textSize(40);
+      text("Congratulations!", 250, 300);
+      text("All bugs squished!", 240, 350);
+      textSize(32);
+      text("Press the mouse to reset.", 220, 400);
+    }
+    
+    pop();
   }
-  pop();
 }
 
-//This function makes the character calls the walk function to make the character walk left or right
-function keyPressed(){
-  if (keyCode == RIGHT_ARROW){
-    character1.walk(1);
-  }
-  else if(keyCode == LEFT_ARROW){
-    character1.walk(-1);
-  }
-  if (keyCode == UP_ARROW){
-    character2.walk(1);
-  }
-  else if(keyCode == DOWN_ARROW){
-    character2.walk(-1);
+
+//This function checks all the bugs to see if mouse is over a bug
+function mouseReleased(){
+  for(let i =0; i <= bugList.length -1; i++){
+    bugList[i].checkSquish();
   }
 }
 
-//This function makes the character stop walking
-function keyReleased(){
-  if(character1.walking != 0){
-    character1.stop();
-  }
-  if(character2.walking != 0){
-    character2.stop();
+//This function is used to transition between game modes
+function mousePressed(){
+  //These if statements are for determing which difficult in the "start" game mode base on mouseX and mouseY
+  if(gameState == "start"){
+    if(mouseX > 220 && mouseX < 320 && mouseY > 325 && mouseY < 365){
+      numBugs = 5;
+      startTime  = millis();
+      gameState = "playing";
+      setup();
+    }
+    else if(mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
+      numBugs = 10;
+      startTime  = millis();
+      gameState = "playing";
+      setup();
+    }
+    else if(mouseX > 470 && mouseX < 570 && mouseY > 325 && mouseY < 365){
+      numBugs = 15;
+      startTime  = millis();
+      gameState = "playing";
+      setup();
+    }
+  }else if(gameState == "endL" || gameState == "endW"){
+    setup();
+    gameState = "start";
   }
 }
 
+//this function returns the number of bugs left alive
+function getBugsLeft(){
+  let bugsAlive = 0;
+  for(let i =0; i < bugList.length ; i++){
+    if(!bugList[i].dead){bugsAlive++;}
+  }
+  if(bugsAlive == 0){
+    gameState = "endW";
+  }
+  return bugsAlive;
+}
 
-//This class holds all the information and functions for the character to walk
-class Character {
-  constructor(spriteSheet,x , y){
-    this.spriteSheet = spriteSheet; 
-    this.xLoc = x;  //x location of character
-    this.yLoc = y;  //y location of character
-    this.walking = 0;  //used to determin if the character is actively walking
-    this.direction = 1; //used to determine the direction the character is facing
-    this.walkFrame = 0; //used for indication which frame the character is in while walking or standing
+//Returns the time elapsed since game has started
+function timer(){
+  return int((millis() - startTime)/1000);
+}
+
+//this function checks the time remaining and stops if time expires
+function checkTime(){
+  if(timer() > 30){
+    gameState = "endL";
+  }
+}
+//This class holds all the information and functions for the bug
+class Bug {
+  constructor(spriteSheet, x , y, direction){
+    this.spriteSheet = spriteSheet;//Spritesheet for bugs
+    this.xLoc = x;  //x location of bug
+    this.yLoc = y;  //y location of bug
+    this.direction = direction; //used to determine the direction the bug is walking(0:left, 1:up, 2:right, 3:down)
+    this.walkFrame = 0; //used for indication which frame the bug is in while walking or dead
+    this.dead = 0; //Determing if bug is dead
   }
 
   draw(){
     push();
     translate(this.xLoc, this.yLoc);
-    scale(this.direction, 1);
-
-    //If the character is not walking, the first image in the sprite sheet will be used 
-    if(this.walking == 0){
-      image(this.spriteSheet, 0, 0, 150, 150, 0, 0, 80, 80);
+    rotate(radians(this.direction * 90));
+    //If the bug is not dead
+    if(!this.dead){
+      image(this.spriteSheet, 0, 0, 100, 100, 300 * this.walkFrame, 0, 300, 300);
+      this.walk();
+      if(frameCount % 6 == 0){
+        this.walkFrame = (this.walkFrame +1) % 4;}
+    }else{
+      image(this.spriteSheet, 0, 0, 100, 100, 1200, 0, 300, 300);
     }
-    else {
-      image(this.spriteSheet, 0, 0, 150, 150, (this.walkFrame + 1 )* 80, 0, 80, 80);
-    }
-
-    if(frameCount % 5 == 0){
-      this.walkFrame = (this.walkFrame +1) % 8;
-    }
-    this.xLoc += this.walking * 2.5;
     pop();
   }
 
-  //This function is used to set the walking state and walking direction appropriately
-  walk(direction){
-    this.walking = direction;
-    this.direction = direction;
+  //This function is used to move the bug
+  walk(){
+    if(this.direction == 0){//Left
+      if(this.xLoc < -50){
+        this.xLoc = 850;
+      }else{
+      this.xLoc -= 1 * speedMult;
+      }
+
+    }else if(this.direction == 1){//Up
+      if(this.yLoc < -50){
+        this.yLoc = 850;
+      }else{
+      this.yLoc -= 1 * speedMult;
+      }
+
+    }else if(this.direction == 2){//Right
+      if(this.xLoc > 850){
+        this.xLoc = -50;
+      }else{
+      this.xLoc += 1 * speedMult;
+      }
+
+    }else{//Down
+      if(this.yLoc > 850){
+        this.yLoc = -50;
+      }else{
+      this.yLoc += 1 * speedMult;
+      }
+    }
   }
 
-  //This function makes the character stop walking
-  stop(){
-    this.walking = 0;
+  //This function checks if the mouse is over a bug and kills it if it is
+  checkSquish(){
+    if(mouseX > this.xLoc -45 && mouseX < this.xLoc + 45 && mouseY > this.yLoc -45 && mouseY < this.yLoc + 45){
+      speedMult += 0.5;
+      this.dead = 1;
+    }
   }
+
+
 }
