@@ -49,15 +49,20 @@ function draw(){
     pop();
   }else if(gameState == "playing"){
     push();
-    checkTime();
-    textSize(24);
-    text("Bugs Remaining: " + getBugsLeft(), 10, 30);
-    timeRemaining = 30 - timer();
-    text("Time Remaining: " + timeRemaining, 10, 60);
     imageMode(CENTER);
     for(let i =0; i <= bugList.length -1; i++){
       bugList[i].draw();
     }
+    pop();
+    push();
+    fill(204, 198, 198);
+    rect(3, 10, 230, 55, 10);
+    checkTime();
+    textSize(24);
+    fill(0,0,0);
+    text("Bugs Remaining: " + getBugsLeft(), 10, 30);
+    timeRemaining = 30 - timer();
+    text("Time Remaining: " + timeRemaining, 10, 60);
     pop();
   }else{ //GAMESTATE == "endL" (loss) or "endW" (win)
     push();
@@ -168,7 +173,7 @@ class Bug {
     //If the bug is not dead
     if(!this.dead){
       image(this.spriteSheet, 0, 0, 100, 100, 300 * this.walkFrame, 0, 300, 300);
-      this.walk();
+      this.walk(random(0,100));
       if(frameCount % 6 == 0){
         this.walkFrame = (this.walkFrame +1) % 4;}
     }else{
@@ -178,8 +183,11 @@ class Bug {
   }
 
   //This function is used to move the bug
-  walk(){
-    if(this.direction == 0){//Left
+  walk(randomNum){
+    if(randomNum>99 && !(this.xLoc > 800 || this.xLoc < 0 || this.yLoc > 800 || this.yLoc < 0)){
+      this.direction = Math.floor(random(0, 3.99));
+    }
+    else if(this.direction == 0){//Left
       if(this.xLoc < -50){
         this.xLoc = 850;
       }else{
@@ -200,7 +208,7 @@ class Bug {
       this.xLoc += 1 * speedMult;
       }
 
-    }else{//Down
+    }else if(this.direction == 3){//Down
       if(this.yLoc > 850){
         this.yLoc = -50;
       }else{
