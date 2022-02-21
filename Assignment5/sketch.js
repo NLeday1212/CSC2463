@@ -6,7 +6,7 @@ const sounds = new Tone.Players({
   Swoosh : "sounds/swoosh.mp3",
   WOW : "sounds/wow.wav"
 })
-var vol = new Tone.Volume(-15).toDestination();
+var vol = new Tone.Volume(-5).toDestination();
 var pitch = new Tone.PitchShift();
 sounds.connect(pitch);
 pitch.connect(vol);
