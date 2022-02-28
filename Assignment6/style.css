@@ -1,0 +1,25 @@
+body {
+  padding: 0;
+  margin: 0;
+  background-color: rgb(204, 198, 198);
+}
+select{
+  height:65px;
+  width:200px;
+  font-size: 30px;
+  text-align: center;
+  background-color: beige;
+}
+button{
+  height:65px;
+  width:125px;
+  font-size: 30px;
+  text-align: center;
+  background-color: beige;
+}
+.slider {
+  width: 200px;
+  height: 15px;
+  border-radius: 5px;  
+  color: aquamarine;
+}
