@@ -1,5 +1,6 @@
 //Nikolai Leday CSC 2463 Synth Assignment 6
-//Creating synths one for every key
+//Youtube link: https://www.youtube.com/watch?v=CjsC24GZIZg
+
 synth = new Tone.Synth().toDestination();
 
 let currKey = '0'; //This variable is responsible for highlighting which key is presed
