@@ -1,15 +1,28 @@
 //Nikolai Leday CSC 2463 Sound Synthesis and Sound Effects 
+var trumpetOn = 0;
 
 function preload(){
-  trumpet = loadImage("https://nleday1212.github.io/CSC2463/Assignment7/trumpet.png");
+  background = loadImage("comet.jpg");
 }
 
 function setup(){
-createCanvas(800, 800);
-background(175);
+  createCanvas(800, 525);
+  
 }
 
 function draw(){
-imageMode(CENTER);
-image(trumpet, 400, 400);
+  push();
+  background(background, 0,0);
+  pop();
+}
+
+function mousePressed(){
+  trumpetOn = 1;
+  
+
+}
+
+function mouseReleased(){
+  trumpetOn = 0;
+
 }
