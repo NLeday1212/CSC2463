@@ -1,3 +1,4 @@
+//Nikolai Leday CSC 2463 Assignment 8, Make P5 sing
 let background;    //background
 let spriteSheet;     //Spritesheet for the bugs
 let bugList = [];  //an array of all the bugs on the screen
@@ -30,7 +31,7 @@ function setup() {
   createCanvas(800, 800);
   //Creating the bug objects
   speedMult = 1;
-  Tone.Transport.bpm.value = 100;
+  Tone.Transport.bpm.value = 90;
   //While loop deletes bug objects from array to account for game restarts. Fixes isse with going down in difficulty
   while(bugList.length > 0){
     bugList.pop();
@@ -43,7 +44,6 @@ function setup() {
 }
 
 function draw(){
-  console.log(Tone.Transport.bpm.value);
   image(background, 0, 0, 800, 800);
   if(gameState == "start"){//Game has not been started 
     //Creating the start menu
@@ -178,8 +178,9 @@ function getBugsLeft(){
   }
   if(bugsAlive == 0){
     gameState = "endW";
+    sounds.player("win").start(0);
     Tone.Transport.stop(0);
-    sounds.player("win");
+    
   }
   return bugsAlive;
 }
@@ -193,8 +194,9 @@ function timer(){
 function checkTime(){
   if(timer() > 30){
     gameState = "endL";
+    sounds.player("lose").start(0);
     Tone.Transport.stop(0);
-    sounds.player("lose");
+    
     
   }
 }
@@ -266,6 +268,9 @@ class Bug {
       if(!this.dead){
         sounds.player(Math.floor(random(0, 2.99))).start(); //Plays squish sound when kiling bug
         this.dead = 1;
+        if(getBugsLeft == 1){
+          
+        }
         if(Tone.Transport.bpm.value <= 180){//cap on transport bpm
           Tone.Transport.bpm.value += 4;
         }
