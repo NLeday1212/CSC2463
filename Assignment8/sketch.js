@@ -7,16 +7,22 @@ let startTime;
 let timeRemaining = 30;
 let gameState = "start"; //"Start" game has not started. "playing" game is currently in play. "endL" or "endW" game is over
 
-//Sounds from audio files
+var vol = new Tone.Volume(-10).toDestination();
 const sounds = new Tone.Players({
-  0 : "sounds/squish1.wav",
-  1 : "sounds/squish2.wav",
-  2 : "sounds/squish3.wav",
-})
-sounds.toDestination();
+  0 : "https://nleday1212.github.io/CSC2463/Assignment8/sounds/squish1.wav",
+  1 : "https://nleday1212.github.io/CSC2463/Assignment8/sounds/squish2.ogg",
+  2 : "https://nleday1212.github.io/CSC2463/Assignment8/sounds/squish3.wav",
+  "win" : "https://nleday1212.github.io/CSC2463/Assignment8/sounds/win.mp3",
+  "lose": "https://nleday1212.github.io/CSC2463/Assignment8/sounds/lose.wav"
+}).connect(vol);
+let synth = new Tone.Synth().connect(vol);
+let seq = new Tone.Sequence((time, note) =>{
+  synth.triggerAttackRelease(note, .01, time);
+}, ["C4", "D4", ["D4", "E4", "F4"], "E4", "D4", "C4", ["D4", "E4"], "F4", "F4", "F4", "A4", "A4", "A4", ["D4", "E4"]]).start(0);
+
 
 function preload(){
-  background = loadImage("https://nleday1212.github.io/CSC2463/Assignment8/images//BugBackground.png");
+  background = loadImage("https://nleday1212.github.io/CSC2463/Assignment8/images/BugBackground.png");
   spriteSheet = loadImage("https://nleday1212.github.io/CSC2463/Assignment8/images/BugSprites.png")
 }
 
@@ -24,6 +30,7 @@ function setup() {
   createCanvas(800, 800);
   //Creating the bug objects
   speedMult = 1;
+  Tone.Transport.bpm.value = 100;
   //While loop deletes bug objects from array to account for game restarts. Fixes isse with going down in difficulty
   while(bugList.length > 0){
     bugList.pop();
@@ -36,7 +43,7 @@ function setup() {
 }
 
 function draw(){
-  console.log(mouseX, mouseY);
+  console.log(Tone.Transport.bpm.value);
   image(background, 0, 0, 800, 800);
   if(gameState == "start"){//Game has not been started 
     //Creating the start menu
@@ -122,8 +129,10 @@ function draw(){
 
 //This function checks all the bugs to see if mouse is over a bug
 function mouseReleased(){
-  for(let i =0; i <= bugList.length -1; i++){
-    bugList[i].checkSquish();
+  if(gameState == "playing"){
+    for(let i =0; i <= bugList.length -1; i++){
+      bugList[i].checkSquish();
+    }
   }
 }
 
@@ -132,22 +141,25 @@ function mousePressed(){
   //These if statements are for determing which difficult in the "start" game mode base on mouseX and mouseY
   if(gameState == "start"){
     if(mouseX > 220 && mouseX < 320 && mouseY > 325 && mouseY < 365){
-      numBugs = 5;
-      startTime  = millis();
-      gameState = "playing";
-      setup();
-    }
-    else if(mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
       numBugs = 10;
       startTime  = millis();
       gameState = "playing";
       setup();
+      Tone.Transport.start();
     }
-    else if(mouseX > 470 && mouseX < 570 && mouseY > 325 && mouseY < 365){
+    else if(mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
       numBugs = 15;
       startTime  = millis();
       gameState = "playing";
       setup();
+      Tone.Transport.start();
+    }
+    else if(mouseX > 470 && mouseX < 570 && mouseY > 325 && mouseY < 365){
+      numBugs = 20;
+      startTime  = millis();
+      gameState = "playing";
+      setup();
+      Tone.Transport.start();
     }
   }else if(gameState == "endL" && mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
     setup();
@@ -166,6 +178,8 @@ function getBugsLeft(){
   }
   if(bugsAlive == 0){
     gameState = "endW";
+    Tone.Transport.stop(0);
+    sounds.player("win");
   }
   return bugsAlive;
 }
@@ -177,8 +191,11 @@ function timer(){
 
 //this function checks the time remaining and stops if time expires
 function checkTime(){
-  if(timer() > 5){
+  if(timer() > 30){
     gameState = "endL";
+    Tone.Transport.stop(0);
+    sounds.player("lose");
+    
   }
 }
 //This class holds all the information and functions for the bug
@@ -246,8 +263,16 @@ class Bug {
   //This function checks if the mouse is over a bug and kills it if it is
   checkSquish(){
     if(mouseX > this.xLoc -45 && mouseX < this.xLoc + 45 && mouseY > this.yLoc -45 && mouseY < this.yLoc + 45){
-      speedMult += 0.5;
-      this.dead = 1;
+      if(!this.dead){
+        sounds.player(Math.floor(random(0, 2.99))).start(); //Plays squish sound when kiling bug
+        this.dead = 1;
+        if(Tone.Transport.bpm.value <= 180){//cap on transport bpm
+          Tone.Transport.bpm.value += 4;
+        }
+        if(speedMult <= 10){//Setting a cap on the speed of the bugs
+          speedMult += 0.5;
+        }
+      }
     }
   }
 
