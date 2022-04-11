@@ -1,72 +1,90 @@
-/* PDM - Communication between P5 and Arduino
-Code by Jesse Allison -2019
-*/
-//Add p5.serialport.js library and include src line to it in index.html
-//You must also be running the p5.serialControl app in the background
-
-// Serial port global variables
-
-let serialPDM;                             // Variable to hold instance of serialport library
-let portName = '/dev/tty.usbmodem1401';    // Fill in your serial port name here
-
+//Nikolai Leday CSC 2463, 3.3 Serial Communication
+let serialPDM;                            
+let portName = 'COM3';    
 let sensors;
-
-// In this example we are receiving:
-// .a0  // the analogRead value of pin a0 0-1023
-// .float0  // the analogRead value of a0 divided by 1023 giving us a normalized range of 0.0-1.0
-// .pressure  // the analogRead value of pin a1 (probably with a pressure sensor attached)
-// p7  // the digitalRead state of pin 7
+let ledState = "Off";
+let bgColor = "White";
+let txtColor = "Black";
 
 function setup() {
-    // Setup the serial port for communication
   serialPDM = new PDMSerial(portName);
   console.log(serialPDM.inData);
-  
-    // Alias for the sensor Data . You can also just use serialPDM.sensorData...
   sensors = serialPDM.sensorData;
   
-  createCanvas(800,600);
-  
+  createCanvas(1024,600);
 }
 
-// Send information via .transmit(name,value)
+function draw(){
+  setBackground();
+  background(bgColor);
+  drawColorBox();
+  circle(sensors.a0, 340, 40); 
+  push();
+  textSize(32);
+  fill(txtColor);
+  text("analog value: "+ sensors.a0, 10, 30);
+  text("led state: " + ledState, 10, 70);
+  pop();
+}
 
 function keyPressed() {
   serialPDM.transmit('led',1);
-  
+  ledState = "On";
   console.log(serialPDM.sensorsConnected());
 }
 
 function keyReleased() {
   serialPDM.transmit('led',0);  
+  ledState = "Off";
 }
 
-function mouseDragged() {
-  ellipse(mouseX, mouseY, 15, 15);
-  let fade = Math.floor(map(mouseY,0,height,0,255, true));
-  
-  serialPDM.transmit('fade',fade);
-  
-  // prevent default
-  return false;
+//This function sets the background color depending on the potentiometer value
+function setBackground(){
+  if(sensors.a0 <= 128){
+    bgColor = "White";
+    txtColor = "Black";
+  }else if(sensors.a0 > 128 && sensors.a0 <= 256){
+    bgColor = "Red";
+    txtColor = "Black";
+  }else if(sensors.a0 > 256 && sensors.a0 <= 384){
+    bgColor = "Orange";
+    txtColor = "Black";
+  }else if(sensors.a0 > 384 && sensors.a0 <= 512){
+    bgColor = "Yellow";
+    txtColor = "Black";
+  }else if(sensors.a0 > 512 && sensors.a0 <= 640){
+    bgColor = "Green";
+    txtColor = "Black";
+  }else if(sensors.a0 > 640 && sensors.a0 <= 768){
+    bgColor = "Blue";
+    txtColor = "Black";
+  }else if(sensors.a0 > 768 && sensors.a0 <= 896){
+    bgColor = "Purple";
+    txtColor = "Black";
+  }else if(sensors.a0 > 896){
+    bgColor = "Black";
+    txtColor = "White";
+  }
 }
 
-
-
-function draw(){
-  background(255);
-  textSize(32);
-  fill(32, 140, 110);
-  text("a0: "+ sensors.a0, 10, 30);
-  text("p7: "+ sensors.p7, 10, 80);
-  text("pressure: "+ sensors.pressure, 10, 120);
-  
-  let circlePosition = map(sensors.float0, 0, 1, 30, width-30);
-  drawCircle(circlePosition, 300, sensors.pressure + 2);
-}
-
-
-function drawCircle(x,y,size){
-  fill("purple");
-  ellipse(x, y, size);
+//This functions draws the 8 different colored boxes to help visualize the color zones
+function drawColorBox(){
+  push();
+  fill("White");
+  rect(0, 300, 128, 75);
+  fill("Red");
+  rect(128, 300, 128, 75);
+  fill("Orange");
+  rect(256, 300, 128, 75);
+  fill("Yellow");
+  rect(384, 300, 128, 75);
+  fill("Green");
+  rect(512, 300, 128, 75);
+  fill("Blue");
+  rect(640, 300, 128, 75);
+  fill("Purple");
+  rect(768, 300, 128, 75);
+  fill("Black");
+  rect(896, 300, 128, 75);
+  pop();
 }
