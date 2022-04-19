@@ -1,4 +1,6 @@
 //Nikolai Leday CSC 2463 Assignment 12, 3.4 Controller
+//Youtube link: https://www.youtube.com/watch?v=OFIzX5ssqQw
+//Variables used for running the game
 let background;    //background
 let spriteSheet;     //Spritesheet for the bugs
 let bugList = [];  //an array of all the bugs on the screen
@@ -7,7 +9,14 @@ let speedMult = 1;//Speed multipler to change speed of bugs
 let startTime;
 let timeRemaining = 30;
 let gameState = "start"; //"Start" game has not started. "playing" game is currently in play. "endL" or "endW" game is over
+let hammer;
 
+//Variables used for communication with arduino
+let serialPDM;                            
+let portName = 'COM3';    
+let sensors;
+
+//Setting up the sound with Tone.js
 var vol = new Tone.Volume(-10).toDestination();
 const sounds = new Tone.Players({
   0 : "https://nleday1212.github.io/CSC2463/Assignment12/sounds/squish1.wav",
@@ -24,15 +33,20 @@ let seq = new Tone.Sequence((time, note) =>{
 
 
 function preload(){
-  background = loadImage("https://nleday1212.github.io/CSC2463/Assignment8/images/BugBackground.png");
-  spriteSheet = loadImage("https://nleday1212.github.io/CSC2463/Assignment8/images/BugSprites.png")
+  background = loadImage("https://nleday1212.github.io/CSC2463/Assignment12/images/BugBackground.png");
+  spriteSheet = loadImage("https://nleday1212.github.io/CSC2463/Assignment12/images/BugSprites.png");
+  hammerSprite = loadImage("https://nleday1212.github.io/CSC2463/Assignment12/images/Hammer.png")
+
+  //Next few lines sets up communication with arduino
+  serialPDM = new PDMSerial(portName);
+  console.log(serialPDM.inData);
+  sensors = serialPDM.sensorData;
 }
 
 function setup() {
   createCanvas(800, 800);
-  //Creating the bug objects
   speedMult = 1;
-  Tone.Transport.bpm.value = 90;
+  hammer = new Hammer(hammerSprite, millis()); //creating the hammer cursor
   //While loop deletes bug objects from array to account for game restarts. Fixes isse with going down in difficulty
   while(bugList.length > 0){
     bugList.pop();
@@ -42,6 +56,7 @@ function setup() {
     let thisBug = new Bug(spriteSheet, random(50, 750), random(50, 750), Math.floor(Math.random() * (3 - 0 + 1)) + 0);
     bugList[i] = thisBug;
   }
+  Tone.Transport.bpm.value = 90;
 }
 
 function draw(){
@@ -122,53 +137,16 @@ function draw(){
       fill(0);
       text("Reset", 363, 398);
     }
-    
     pop();
   }
-}
-
-
-//This function checks all the bugs to see if mouse is over a bug
-function mouseReleased(){
-  if(gameState == "playing"){
-    for(let i =0; i <= bugList.length -1; i++){
-      bugList[i].checkSquish();
+  hammer.move(sensors.hammerX, sensors.hammerY);
+  if(sensors.button == 0){
+    if(millis() - hammer.lastClickTime > 650){
+      hammer.click();
+      hammer.lastClickTime = millis();
     }
   }
-}
-
-//This function is used to transition between game modes
-function mousePressed(){
-  //These if statements are for determing which difficult in the "start" game mode base on mouseX and mouseY
-  if(gameState == "start"){
-    if(mouseX > 220 && mouseX < 320 && mouseY > 325 && mouseY < 365){
-      numBugs = 10;
-      startTime  = millis();
-      gameState = "playing";
-      setup();
-      Tone.Transport.start();
-    }
-    else if(mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
-      numBugs = 15;
-      startTime  = millis();
-      gameState = "playing";
-      setup();
-      Tone.Transport.start();
-    }
-    else if(mouseX > 470 && mouseX < 570 && mouseY > 325 && mouseY < 365){
-      numBugs = 20;
-      startTime  = millis();
-      gameState = "playing";
-      setup();
-      Tone.Transport.start();
-    }
-  }else if(gameState == "endL" && mouseX > 345 && mouseX < 445 && mouseY > 325 && mouseY < 365){
-    setup();
-    gameState = "start";
-  }else if(gameState == "endW" && mouseX > 345 && mouseX < 445 && mouseY > 370 && mouseY < 410){
-    setup();
-    gameState = "start";
-  }
+  hammer.draw();
 }
 
 //this function returns the number of bugs left alive
@@ -179,9 +157,8 @@ function getBugsLeft(){
   }
   if(bugsAlive == 0){
     gameState = "endW";
-    sounds.player("win").start(0);
     Tone.Transport.stop(0);
-    
+    sounds.player("win").start(0);
   }
   return bugsAlive;
 }
@@ -195,10 +172,8 @@ function timer(){
 function checkTime(){
   if(timer() > 30){
     gameState = "endL";
-    sounds.player("lose").start(0);
     Tone.Transport.stop(0);
-    
-    
+    sounds.player("lose").start(0);
   }
 }
 //This class holds all the information and functions for the bug
@@ -264,15 +239,12 @@ class Bug {
   }
 
   //This function checks if the mouse is over a bug and kills it if it is
-  checkSquish(){
-    sounds.player("strike").start(0);
-    if(mouseX > this.xLoc -45 && mouseX < this.xLoc + 45 && mouseY > this.yLoc -45 && mouseY < this.yLoc + 45){
+  checkSquish(x, y){
+    if(x > this.xLoc -45 && x < this.xLoc + 45 && y > this.yLoc -45 && y < this.yLoc + 45){
       if(!this.dead){
         sounds.player(Math.floor(random(0, 2.99))).start(); //Plays squish sound when kiling bug
         this.dead = 1;
-        if(getBugsLeft == 1){
-          
-        }
+        serialPDM.transmit('led',0);
         if(Tone.Transport.bpm.value <= 180){//cap on transport bpm
           Tone.Transport.bpm.value += 4;
         }
@@ -285,3 +257,102 @@ class Bug {
 
 
 }
+
+//This function holds all the information about the hammer/cursor
+class Hammer{
+  constructor(spriteSheet, time){
+    this.spriteSheet = spriteSheet;
+    this.xLoc = 400;  //x location of hammer
+    this.yLoc = 450;  //y location of hammer
+    this.lastClickTime = time; //time of last click by the hammer to space. Used to make the hammer non spammable
+  }
+  //This function moves the hammer
+  move(x, y){
+    if(x > 550 && !(this.xLoc > 800)){
+      this.xLoc += 5;
+    }
+    else if(x < 450 && !(this.xLoc < 0)){
+      this.xLoc -= 5;
+    }
+    
+    if(y > 550 && !(this.yLoc > 800)){
+      this.yLoc += 5;
+    }
+    else if(y < 450 && !(this.yLoc < 0)){
+      this.yLoc -= 5;
+    }  
+  }
+  //This function draws the hammer/cursor onto the screen
+  draw(){
+    push();
+    imageMode(CENTER);
+    translate(this.xLoc, this.yLoc);
+    if(millis() - this.lastClickTime > 250){
+      image(this.spriteSheet, 0, 0, 100, 100, 0, 0, 300, 300);
+    }else{
+      image(this.spriteSheet, 0, 0, 100, 100, 300, 0, 300, 300);
+    }
+    
+    pop();
+  }
+  //This function interacts with the game from the click of the joystick
+  click(){
+    if(gameState == "playing"){
+      for(let i =0; i <= bugList.length -1; i++){
+        bugList[i].checkSquish(this.xLoc, this.yLoc);
+      }
+    }else{
+      if(this.checkButton(this.xLoc, this.yLoc) == 1){
+        numBugs = 3;
+        gameState = "playing";
+        Tone.Transport.start();
+        startTime  = millis();
+        setup();
+      }else if(this.checkButton(this.xLoc, this.yLoc) == 2){
+        numBugs = 6;
+        gameState = "playing";
+        Tone.Transport.start();
+        startTime  = millis();
+        setup();
+      }else if(this.checkButton(this.xLoc, this.yLoc) == 3){
+        numBugs = 10;
+        gameState = "playing";
+        Tone.Transport.start();
+        startTime  = millis();
+        setup();
+      }else if(this.checkButton(this.xLoc, this.yLoc) == 4){
+        gameState = "start";
+        Tone.Transport.stop();
+        setup();
+      }
+    }
+    sounds.player("strike").start(0);
+  }
+
+  //This function checks to see if the hammer/cursor is over a button and returns the corresponding button id number
+  checkButton(x, y){
+    let retVal = 0;
+    if(gameState == "start"){
+      if(x >= 220 && x <= 320 && y >= 325 && y <= 365){
+        retVal = 1;
+      }
+      else if(x >= 345 && x <= 445 && y >= 325 && y <= 365){
+        retVal = 2;
+      }
+      else if(x >= 470 && x <= 570 && y >= 325 && y <= 365){
+        retVal = 3;
+      }
+    }
+    else if(gameState == "endW"){
+      if(x >= 345 && x <= 445 && y >= 370 && y <= 410){
+        retVal = 4;
+      }
+    }else if(gameState == "endL"){
+      if(x >= 345 && x <= 445 && y >= 325 && y <= 365){
+        retVal = 4;
+      }
+    }
+    return retVal;
+  }
+}
+

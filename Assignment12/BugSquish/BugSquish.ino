@@ -1,28 +1,42 @@
 //Nikolai Leday CSC 2463, 3.4 Controller
-//Youtube link: 
+//Youtube link: https://www.youtube.com/watch?v=OFIzX5ssqQw
 #include "PDMSerial.h"
 PDMSerial pdm;
 
-const int analogPin = A0; //Analog input 
-const int ledPin = 7;     //digital led output
-int potentValue;          //value the potentiometer is at
+const int analogX = A0; //Analog X axis input 
+const int analogY = A1; //Analog Y axis input
+const int button = 7; //Button on joystick 
+const int ledPin = 2;     //digital led output
+
 
 void setup() {
-  pinMode(analogPin, INPUT);
+  pinMode(analogX, INPUT);
+  pinMode(analogY, INPUT);
+  pinMode(button, INPUT);
   pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  digitalWrite(button, HIGH);
   Serial.begin(9600);
 
 }
 
 void loop() {
-  potentValue = map(analogRead(analogPin), 0, 1023, 1023, 0);
-  pdm.transmitSensor("a0", potentValue);
+  pdm.transmitSensor("hammerX", analogRead(analogX));
+  pdm.transmitSensor("hammerY",analogRead(analogY));
+  pdm.transmitSensor("button",digitalRead(button));
   pdm.transmitSensor("end");
 
   boolean newData = pdm.checkSerial();
   if(newData) {
     if(pdm.getName().equals(String("led"))) {
-      digitalWrite(ledPin, pdm.getValue());
+      digitalWrite(ledPin, HIGH);
+      delay(100);
+      digitalWrite(ledPin, LOW);
+      delay(100);
+      digitalWrite(ledPin, HIGH);
+      delay(100);
+      digitalWrite(ledPin, LOW);
+      delay(100);
     }
   }
 
