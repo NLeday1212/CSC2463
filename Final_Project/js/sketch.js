@@ -1,5 +1,14 @@
 //Nikolai Leday CSC 2463, Final Integration Project
 
+var vol = new Tone.Volume(-10).toDestination();
+const sounds = new Tone.Players({
+  "rocketHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketHit.wav",
+  "rocketLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketLaser.wav",
+  "alienHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienHit.wav",
+  "alienLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienLaser.wav",
+  "asteroidHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/asteroidHit.wav"
+}).connect(vol);
+
 function preload(){
   background = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/spaceBG.png");
   rocketSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/rocket.png");
@@ -201,6 +210,7 @@ class Game{
     for(let i = 0; i <= this.asteroids.length -1; i++){
       if(rocketX > this.asteroids[i].xPos -60 && rocketX < this.asteroids[i].xPos + 60 && rocketY > this.asteroids[i].yPos -60 && rocketY < this.asteroids[i].yPos + 60){
         if(frameCount - this.rocket.lastCollisionFrame > 90){
+          sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
         }
@@ -210,6 +220,7 @@ class Game{
     for(let i = 0; i <= this.aliens.length -1; i++){
       if(rocketX > this.aliens[i].xPos -60 && rocketX < this.aliens[i].xPos + 60 && rocketY > this.aliens[i].yPos -60 && rocketY < this.aliens[i].yPos + 60){
         if(frameCount - this.rocket.lastCollisionFrame > 90){
+          sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
         }
@@ -221,6 +232,7 @@ class Game{
     for(let i = 0; i< this.asteroids.length ; i++){
       if(laser.xPos > this.asteroids[i].xPos -35 && laser.xPos < this.asteroids[i].xPos + 35 && laser.yPos > this.asteroids[i].yPos -35 && laser.yPos < this.asteroids[i].yPos + 35){
           game.score += this.asteroids[i].type * 100;
+          sounds.player("asteroidHit").start();
           this.asteroids.splice(i, 1);
           this.asteroidsDestroyedCount++;
           this.rocket.lasers.splice(this.rocket.lasers.indexOf(laser), 1); //removes laser after it destorys asteroid
@@ -231,6 +243,7 @@ class Game{
     for(let i = 0; i< this.aliens.length ; i++){
       if(laser.xPos > this.aliens[i].xPos -35 && laser.xPos < this.aliens[i].xPos + 35 && laser.yPos > this.aliens[i].yPos -35 && laser.yPos < this.aliens[i].yPos + 35){
           game.score += 300;
+          sounds.player("alienHit").start();
           this.aliens.splice(i, 1);
           this.alienKillCount++;
           this.rocket.lasers.splice(this.rocket.lasers.indexOf(laser), 1); //removes laser after it destorys asteroid
@@ -245,6 +258,7 @@ class Game{
     for(let i = 0; i <= alien.lasers.length - 1; i++){
       if(alien.lasers[i].xPos > this.rocket.xPos - 45 && alien.lasers[i].xPos < this.rocket.xPos + 45 && alien.lasers[i].yPos > this.rocket.yPos -45 && alien.lasers[i].yPos < this.rocket.yPos + 45){
         if(frameCount - this.rocket.lastCollisionFrame > 90){
+          sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
           alien.lasers.splice(i, 1);
@@ -275,6 +289,7 @@ class rocketShip{
     this.move();
     for(let i = 0; i < this.lasers.length; i++){this.lasers[i].move();}//Drawing lasers
     if(keyIsDown(70) && (frameCount - this.lastFiredFrame) > 30){
+      sounds.player("rocketLaser").start();
       this.lastFiredFrame = frameCount;
       this.lasers.push(new laser(this.xPos, this.yPos, this.angle, "rocket", 8));
       if(this.lasers.length > 10){
@@ -469,6 +484,7 @@ class alien{
   shootLaser(){
     if(frameCount - this.lastFiredFrame > 90){
       this.lasers.push(new laser(this.xPos, this.yPos, this.rotateAngle, "alien", 1));
+      sounds.player("alienLaser").start();
       this.lastFiredFrame = frameCount;
       if(this.lasers.length > 10){
         this.lasers.shift();
