@@ -1,13 +1,19 @@
 //Nikolai Leday CSC 2463, Final Integration Project
-
 var vol = new Tone.Volume(-10).toDestination();
 const sounds = new Tone.Players({
   "rocketHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketHit.wav",
   "rocketLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketLaser.wav",
   "alienHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienHit.wav",
   "alienLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienLaser.wav",
-  "asteroidHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/asteroidHit.wav"
+  "asteroidHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/asteroidHit.wav",
+  "beep" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/beep.wav"
 }).connect(vol);
+let synth = new Tone.DuoSynth().connect(vol);
+let seq = new Tone.Sequence((time, note) =>{
+  synth.triggerAttackRelease(note, .01, time);
+}, [["D4", "D4"],"D4","D4", "F3", "C4", ["A3", "A3"],"A3","A3", "F3", "C4",
+    "D4", "C4", "D4", "C4", "F3", "C4", ["D4", "D4"], "C4", ["F4", "F4" ],"F3"]).start(0);
+Tone.Transport.bpm.value = 80;
 
 function preload(){
   background = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/spaceBG.png");
@@ -64,6 +70,7 @@ class userInterface{
       this.titleSize += this.titleGrow;
     }
     if(keyIsDown(32)){
+      Tone.Transport.start();
       game.gameState = "playing";
       game.gameStartFrame = frameCount;
     }
@@ -92,6 +99,7 @@ class userInterface{
 
   }
   drawPlaying(){
+    if(frameCount % 180 == 0){Tone.Transport.bpm.value++;}
     push();
     imageMode(CENTER);
     fill(255);
@@ -135,6 +143,7 @@ class userInterface{
     if(keyIsDown(70)){
       game.gameState = "mainMenu";
       game = new Game();
+      Tone.Transport.bpm.value = 80;
     }
   }
 }
@@ -167,6 +176,7 @@ class Game{
     }
     if(this.rocket.lives <= 0 || frameCount - this.gameStartFrame > 3600){
       this.gameState = "end";
+      Tone.Transport.bpm.value = 80;
     }
   }
 
@@ -193,6 +203,10 @@ class Game{
     if(frameCount % 720 == 0){
       this.asteroids.push(new asteroid(-49, random(0, windowHeight-50), random(0, 359), random(0.5, 2), 3));
     }
+    if((frameCount - this.gameStartFrame)/60 == 50){sounds.player("beep").start();}
+    if((frameCount - this.gameStartFrame)/60 == 57){sounds.player("beep").start();}
+    if((frameCount - this.gameStartFrame)/60 == 58){sounds.player("beep").start();}
+    if((frameCount - this.gameStartFrame)/60 == 59){sounds.player("beep").start();}
   }
 
   //This function calls each function of every entity to move it
