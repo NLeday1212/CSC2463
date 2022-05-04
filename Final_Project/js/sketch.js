@@ -1,12 +1,12 @@
 //Nikolai Leday CSC 2463, Final Integration Project
 var vol = new Tone.Volume(-10).toDestination();
 const sounds = new Tone.Players({
-  "rocketHit" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/rocketHit.wav",
-  "rocketLaser" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/rocketLaser.wav",
-  "alienHit" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/alienHit.wav",
-  "alienLaser" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/alienLaser.wav",
-  "asteroidHit" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/asteroidHit.wav",
-  "beep" : "https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/sounds/beep.wav"
+  "rocketHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketHit.wav",
+  "rocketLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/rocketLaser.wav",
+  "alienHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienHit.wav",
+  "alienLaser" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/alienLaser.wav",
+  "asteroidHit" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/asteroidHit.wav",
+  "beep" : "https://nleday1212.github.io/CSC2463/Final_Project/sounds/beep.wav"
 }).connect(vol);
 let synth = new Tone.DuoSynth().connect(vol);
 let seq = new Tone.Sequence((time, note) =>{
@@ -16,11 +16,11 @@ let seq = new Tone.Sequence((time, note) =>{
 Tone.Transport.bpm.value = 80;
 
 function preload(){
-  background = loadImage("https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/images/spaceBG.png");
-  rocketSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/images/rocket.png");
-  asteroidSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/images/asteroid.png");
-  alienSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/images/alien.png");
-  heart = loadImage("https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/images/heart.png");
+  background = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/spaceBG.png");
+  rocketSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/rocket.png");
+  asteroidSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/asteroid.png");
+  alienSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/alien.png");
+  heart = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/heart.png");
 
 }
 
