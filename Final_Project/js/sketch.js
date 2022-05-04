@@ -15,6 +15,10 @@ let seq = new Tone.Sequence((time, note) =>{
     "D4", "C4", "D4", "C4", "F3", "C4", ["D4", "D4"], "C4", ["F4", "F4" ],"F3"]).start(0);
 Tone.Transport.bpm.value = 80;
 
+//Variables for communication with arduino
+let serialPDM;                               
+let sensors;
+
 function preload(){
   background = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/spaceBG.png");
   rocketSprite = loadImage("https://nleday1212.github.io/CSC2463/Final_Project/images/rocket.png");
@@ -28,6 +32,8 @@ function setup(){
   createCanvas(windowWidth, windowHeight-4);
   game = new Game();
   ui = new userInterface();
+  serialPDM = new PDMSerial('COM3');
+  sensors = serialPDM.sensorData;
 }
 
 function draw(){
@@ -49,10 +55,6 @@ function draw(){
   };
 }
 
-function keyReleased(){
-  game.rocket.frame = 0;
-}
-
 class userInterface{
   constructor(){
     this.titleSize = 80;
@@ -69,10 +71,11 @@ class userInterface{
     if(frameCount % 4 == 0){
       this.titleSize += this.titleGrow;
     }
-    if(keyIsDown(32)){
+    if(keyIsDown(32) || sensors.boostButton == 1){
       Tone.Transport.start();
       game.gameState = "playing";
       game.gameStartFrame = frameCount;
+      serialPDM.transmit("heal");
     }
     rectMode(CENTER);
     fill(128,130,153);
@@ -92,7 +95,7 @@ class userInterface{
     text("Welcome to Space Spelunker, a game by Nikolai Leday. \nGet the highest score possible by shooting asteroids and aliens!", windowWidth/2, windowHeight/2 - 25);
     fill(220, 0, 0);
     textSize(30);
-    text("Start by pressing spacebar!", windowWidth/2, windowHeight/2 + 45);
+    text("Start by pressing spacebar or boost button!", windowWidth/2, windowHeight/2 + 45);
     textSize(18);
     textAlign(LEFT);
     text("100 Points\t\t200 Points\t\t300 Points\t\t300 Points", windowWidth/2 - 85, windowHeight/2+175);
@@ -139,11 +142,12 @@ class userInterface{
     text("Asteroids Destroyed: " + game.asteroidsDestroyedCount, windowWidth/2, windowHeight/2 + 50);
     text("Aliens killed: " + game.alienKillCount, windowWidth/2, windowHeight/2 +100);
     fill(220, 0, 0);
-    text("Press 'F' to return to main menu.", windowWidth/2, windowHeight/2 + 150);
-    if(keyIsDown(70)){
+    text("Press 'F' or shoot button to return to main menu.", windowWidth/2, windowHeight/2 + 150);
+    if(keyIsDown(70) || sensors.joyButton == 0){
       game.gameState = "mainMenu";
       game = new Game();
       Tone.Transport.bpm.value = 80;
+      serialPDM.transmit("heal");
     }
   }
 }
@@ -227,6 +231,7 @@ class Game{
           sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
+          serialPDM.transmit("collision");
         }
       }
     }
@@ -237,6 +242,7 @@ class Game{
           sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
+          serialPDM.transmit("collision");
         }
       }
     }
@@ -275,6 +281,7 @@ class Game{
           sounds.player("rocketHit").start();
           this.rocket.lives--;
           this.rocket.lastCollisionFrame = frameCount;
+          serialPDM.transmit("collision");
           alien.lasers.splice(i, 1);
         }
         
@@ -299,10 +306,10 @@ class rocketShip{
   }
   //This function runs the rocket ship
   run(){
-    
     this.move();
     for(let i = 0; i < this.lasers.length; i++){this.lasers[i].move();}//Drawing lasers
-    if(keyIsDown(70) && (frameCount - this.lastFiredFrame) > 30){
+    if((keyIsDown(70) || sensors.joyButton == 0)&& (frameCount - this.lastFiredFrame) > 30){
+
       sounds.player("rocketLaser").start();
       this.lastFiredFrame = frameCount;
       this.lasers.push(new laser(this.xPos, this.yPos, this.angle, "rocket", 8));
@@ -322,23 +329,24 @@ class rocketShip{
     pop();
   }
 
-  
-  
-
   move(){
     let up = 0;
     let left = 0;
     let right = 0;
     let boost = 0;
-    if(keyIsDown(UP_ARROW)){up = 1;}
-    if(keyIsDown(LEFT_ARROW)){left = 1;}
-    if(keyIsDown(RIGHT_ARROW)){right = 1;}
-    if(keyIsDown(32)){boost = 3;}
+    if(keyIsDown(UP_ARROW) || sensors.joyY < 100){up = 1;}
+    if(keyIsDown(LEFT_ARROW) || sensors.joyX < 200){left = 1;}
+    if(keyIsDown(RIGHT_ARROW) || sensors.joyX > 820){right = 1;}
+    if(keyIsDown(32) || sensors.boostButton == 1){boost = 3;}
     
 
     //This if turns the ship around if beyond boundary
     if(this.xPos <= 50 || this.xPos >= windowWidth -50 || this.yPos <= 50 || this.yPos >= windowHeight -50){
       this.angle += 180;
+    }
+    //Sets frame to 0 if rocket is not moving
+    if(!(up || left || right)){
+      this.frame = 0;
     }
     //Moving forward and/or roating left/right
     if(up){
