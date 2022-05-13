@@ -1,0 +1,61 @@
+<html lang="en-US"><head>
+    <meta charset="UTF-8">
+  <head>
+	<style>
+	a{
+	   font-size: 40;
+	}
+    p{
+        font-size: 25;
+    }
+	</style>	
+  </head>
+  <body>
+    <div>
+      <h1>Nikolai Leday, CSC 2463, Space Spelunker Documentation</h2>
+        <a href ="https://nleday1212.github.io/CSC2463/Final_Project_Keyboard/Space_Spelunker.html">Final Project | Space Spelunker | Keyboard Only</a><br><br>
+        <a href ="https://nleday1212.github.io/CSC2463/Final_Project/Space_Spelunker.html">Final Project | Space Spelunker | Arduino</a><br><br>
+        <h1>Outline</h1>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This project is the final project for the class CSC 2463, and was created by me, Nikolai Leday. <br>
+            This project was created using javascript including the P5.js and Tone.js libraries. P5.js was used for <br>
+            creating all of the graphical elements, while Tone.js was used for all of the sound elements. The final part <br>
+            of the project was connecting the javascript to an Arduino controller. Connecting the Arduino was accomplished <br>
+            by using a javascript library provided to the class from the professor which allowed the browser to read the<br>
+            serial commands from the Arduino. The connection was able to work because of a program called the p5 serial<br>
+            controller. The Javascript would send back commands to the arduino to change the number of lights that are on<br>
+            which represents health.<br>
+        </p>
+        <h1>Narrative Description</h1>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;There are three game states in Space Spelunker, the main menu screen, playing screen, and the game over<br>
+            screen. The player is first introduced to the main menu screen, which shows a scrolling space background, the title<br>
+            of the game, controls and how to play, and the points per entity destroyed. After starting the game, the player will <br>
+            notice a time remaining and score text in the upper left hand corner. The player has three points of health, which is <br>
+            represented with three heart images in the upper middle section of the scren. The player will be controlling a rocket ship<br>
+            which can turn left or right, and fly foward. The player can also use the boost button to fly faster. Multiple asteroids<br>
+            will spawn and begin flying around the screen at different angles and speeds. After a few seconds, asteroids of higher value<br>
+            and aliens will spawn in regular intervals until the game ends. While the player is avoiding colliding with entities, they <br>
+            will be firing lasers at aliens and asteroids to gain score. <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;With ten, three, two, and one seconds remaining, a warning sound will play alerting the player to the <br>
+            soon end of the game. Once the game has run out of time or the player has run out lives, the game will have ended and show <br>
+            a game over screen. The game over screen shows the total score gained by the player, the number of asteroids destroyed, and aliens<br>
+            killed. The player can then press the specific button to return to the main menu and start the game over again. 
+        </p>
+        <h1> Images and Video</h1>
+        <img src="mainmenu.JPG" style="width: 700px; height : 350px"><br><br>
+        <img src="playing1.JPG" style="width: 700px; height : 350px"><br><br>
+        <img src="playing2.JPG" style="width: 700px; height : 350px"><br><br>
+        <img src="gameover.JPG" style="width: 700px; height : 350px"><br><br>
+        <iframe width="700" height="350"src="https://www.youtube.com/embed/qx5PN_qZXqE"></iframe>
+
+        <h1>Future Development</h1>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;There are many things that could be implemented into the game and expand it. First addressing the bug with Tone.js<br> 
+            randomly crashing the program will have to be done. After that bug is fixed, multiple levels, new enemies and asteroids, health <br>
+            packs, and customizable rocket can be added into the game.  Multiplayer could be extremely easy to integrate with just adding a new <br>
+            rocket ship object and new keybind reading code. 
+
+        </p>
+
+      
+    </div>
+
+</body></html>
